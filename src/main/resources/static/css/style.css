@@ -1,0 +1,115 @@
+/* General Styles */
+body {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+main {
+    flex: 1;
+}
+
+/* Card Hover Effects */
+.card {
+    transition: transform 0.2s ease-in-out;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+}
+
+/* Video Thumbnails */
+.card-img-top {
+    height: 180px;
+    object-fit: cover;
+}
+
+/* Text Truncation */
+.text-truncate-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* Video Description */
+.whitespace-pre-line {
+    white-space: pre-line;
+}
+
+/* Playlist Video List */
+.list-group-item {
+    transition: background-color 0.2s;
+}
+
+.list-group-item:hover {
+    background-color: #f8f9fa;
+}
+
+.list-group-item .remove-video {
+    visibility: hidden;
+}
+
+.list-group-item:hover .remove-video {
+    visibility: visible;
+}
+
+/* Search Bar */
+.navbar .form-control {
+    border-radius: 20px;
+    padding-left: 1rem;
+    padding-right: 1rem;
+}
+
+.navbar .form-control:focus {
+    box-shadow: none;
+    border-color: #dc3545;
+}
+
+/* Loading Spinner */
+.loading {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+/* Comment Section */
+.comments-section .comment {
+    border-bottom: 1px solid #dee2e6;
+    padding-bottom: 1rem;
+    margin-bottom: 1rem;
+}
+
+.comments-section .comment:last-child {
+    border-bottom: none;
+}
+
+/* Responsive Font Sizes */
+@media (max-width: 768px) {
+    h1 {
+        font-size: 1.5rem;
+    }
+    
+    h2 {
+        font-size: 1.25rem;
+    }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}

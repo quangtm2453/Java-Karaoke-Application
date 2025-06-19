@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html th:replace="~{layout/default :: html(content=~{::content}, scripts=~{::scripts}, title=${video.title})}">
+<th:block th:fragment="content">
+    <div class="row">
+        <!-- Video Player Column -->
+        <div class="col-lg-8">
+            <!-- Video Player -->
+            <div class="ratio ratio-16x9 mb-3">
+                <iframe th:src="@{'https://www.youtube.com/embed/' + ${video.id}}"
+                        allowfullscreen></iframe>
+            </div>
+
+            <!-- Video Info -->
+            <h1 class="h4 mb-3" th:text="${video.title}">Video Title</h1>
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div>
+                    <span th:text="${#numbers.formatInteger(video.viewCount, 1, 'COMMA')}">0</span> views
+                    • <span th:text="${#temporals.format(video.publishedAt, 'MMM d, yyyy')}">Date</span>
+                </div>
+                <div th:if="${session.userId != null}">
+                    <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#addToPlaylistModal">
+                        <i class="fas fa-plus"></i> Add to Playlist
+                    </button>
+                </div>
+            </div>
+
+            <!-- Channel Info -->
+            <div class="d-flex align-items-center mb-4">
+                <img th:src="${channel.thumbnail}" alt="Channel thumbnail" class="rounded-circle" width="48" height="48">
+                <div class="ms-3">
+                    <h5 class="mb-0" th:text="${channel.title}">Channel Name</h5>
+                    <small class="text-muted">
+                        <span th:text="${#numbers.formatInteger(channel.subscriberCount, 1, 'COMMA')}">0</span> subscribers
+                    </small>
+                </div>
+            </div>
+
+            <!-- Video Description -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <p class="card-text whitespace-pre-line" th:text="${video.description}">Description</p>
+                </div>
+            </div>
+
+            <!-- Comments -->
+            <div class="comments-section">
+                <h3 class="h5 mb-4">Comments</h3>
+                <div th:each="comment : ${comments}" class="mb-4">
+                    <div class="d-flex">
+                        <img th:src="${comment.authorProfileImageUrl}" class="rounded-circle" width="40" height="40"
+                             alt="Author profile picture">
+                        <div class="ms-3">
+                            <div class="fw-bold" th:text="${comment.authorDisplayName}">Username</div>
+                            <div class="text-muted small">
+                                <span th:text="${#temporals.format(comment.publishedAt, 'MMM d, yyyy')}">Date</span>
+                            </div>
+                            <p th:text="${comment.text}">Comment text</p>
+                            <div class="text-muted small">
+                                <i class="fas fa-thumbs-up"></i>
+                                <span th:text="${comment.likeCount}">0</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Related Videos Column -->
+        <div class="col-lg-4">
+            <h3 class="h5 mb-3">Related Videos</h3>
+            <div th:each="relatedVideo : ${relatedVideos}" class="mb-3">
+                <a th:href="@{/video/{id}(id=${relatedVideo.id})}" class="text-decoration-none text-dark">
+                    <div class="row g-0">
+                        <div class="col-5">
+                            <img th:src="${relatedVideo.thumbnail}" class="img-fluid" th:alt="${relatedVideo.title}">
+                        </div>
+                        <div class="col-7">
+                            <div class="ps-2">
+                                <h6 class="mb-1 text-truncate" th:text="${relatedVideo.title}">Video Title</h6>
+                                <small class="text-muted d-block" th:text="${relatedVideo.channelTitle}">Channel Name</small>
+                                <small class="text-muted">
+                                    <span th:text="${#numbers.formatInteger(relatedVideo.viewCount, 1, 'COMMA')}">0</span> views
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add to Playlist Modal -->
+    <div class="modal fade" id="addToPlaylistModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Add to Playlist</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="list-group">
+                        <button th:each="playlist : ${playlists}" 
+                                class="list-group-item list-group-item-action add-to-playlist"
+                                th:data-playlist-id="${playlist.id}">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span th:text="${playlist.name}">Playlist Name</span>
+                                <small class="text-muted">
+                                    <span th:text="${playlist.videos.size()}">0</span> videos
+                                </small>
+                            </div>
+                        </button>
+                    </div>
+                    <div th:if="${playlists.empty}" class="text-center p-3">
+                        <p class="mb-2">No playlists available</p>
+                        <a th:href="@{/playlists}" class="btn btn-primary">Create Playlist</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</th:block>
+<th:block th:fragment="scripts">
+    <script th:inline="javascript">
+        const videoId = /*[[${video.id}]]*/ '';
+        
+        document.querySelectorAll('.add-to-playlist').forEach(button => {
+            button.addEventListener('click', function() {
+                const playlistId = this.dataset.playlistId;
+                
+                fetch(`/api/playlists/${playlistId}/videos`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ videoId: videoId })
+                })
+                .then(response => {
+                    if (response.ok) {
+                        const modal = document.getElementById('addToPlaylistModal');
+                        const bsModal = bootstrap.Modal.getInstance(modal);
+                        bsModal.hide();
+                        alert('Video added to playlist successfully!');
+                    } else {
+                        throw new Error('Failed to add video to playlist');
+                    }
+                })
+                .catch(error => alert(error.message));
+            });
+        });
+    </script>
+</th:block>
+</html>

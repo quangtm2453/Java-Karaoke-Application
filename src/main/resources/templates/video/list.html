@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html th:replace="~{layout/default :: html(content=~{::content}, scripts=~{}, title=${query != null ? #strings.concat('Search: ', query) : 'Home'})}">
+<th:block th:fragment="content">
+    <div th:if="${query}" class="mb-4">
+        <h2>Search results for: <span th:text="${query}"></span></h2>
+    </div>
+    <div th:unless="${query}" class="mb-4">
+        <h2>Popular Videos</h2>
+    </div>
+
+    <!-- Error message -->
+    <div th:if="${error}" class="alert alert-danger" role="alert">
+        <i class="fas fa-exclamation-circle"></i>
+        <span th:text="${error}">Error message</span>
+    </div>
+
+    <!-- Videos grid -->
+    <div class="row g-4" th:if="${videos != null && !videos.empty}">
+        <div th:each="video : ${videos}" class="col-md-4 col-lg-3">
+            <div class="card h-100">                <!-- Video link with ID handling -->                <a th:with="videoId=${video.id != null ? (T(java.lang.String).isInstance(video.id) ? video.id : (video.id.videoId != null ? video.id.videoId : '')) : ''}"
+                   th:if="${videoId != ''}"
+                   th:href="@{/video/{id}(id=${videoId})}"
+                   class="text-decoration-none">
+                    
+                    <!-- Thumbnail -->
+                    <img th:with="thumbnails=${video.snippet?.thumbnails}"
+                         th:src="${thumbnails?.medium?.url ?: thumbnails?.default?.url ?: 'https://via.placeholder.com/320x180'}"
+                         class="card-img-top" 
+                         loading="lazy"
+                         th:alt="${video.snippet?.title ?: 'Video thumbnail'}">
+                    
+                    <div class="card-body">
+                        <!-- Title -->
+                        <h5 class="card-title text-truncate" 
+                            th:text="${video.snippet?.title ?: 'Untitled Video'}">Video Title</h5>
+                        
+                        <!-- Channel name -->
+                        <p class="card-text">
+                            <small class="text-muted" 
+                                   th:text="${video.snippet?.channelTitle ?: 'Unknown Channel'}">Channel Name</small>
+                        </p>
+                        
+                        <!-- Stats -->
+                        <p class="card-text">
+                            <small class="text-muted">
+                                <!-- View count -->
+                                <th:block th:if="${video.statistics != null && video.statistics.viewCount != null}">
+                                    <span th:text="${#numbers.formatInteger(video.statistics.viewCount, 1, 'COMMA')}">0</span>
+                                    views
+                                </th:block>
+                                
+                                <!-- Date -->
+                                <th:block th:if="${video.snippet?.publishedAt != null}">
+                                    <span th:if="${video.statistics != null && video.statistics.viewCount != null}"> • </span>
+                                    <span th:text="${#temporals.format(#dates.parse(video.snippet.publishedAt), 'MMM d, yyyy')}">Date</span>
+                                </th:block>
+                            </small>
+                        </p>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Empty state -->
+    <div th:if="${videos == null || videos.empty}" class="text-center p-5">
+        <div class="mb-4">
+            <i class="fas fa-video fa-3x text-muted"></i>
+        </div>
+        <h3>No Videos Found</h3>
+        <p class="text-muted" th:text="${query != null ? 'Try different search terms' : 'No videos available at the moment'}">
+            No videos available
+        </p>
+    </div>
+
+    <!-- Pagination -->
+    <nav th:if="${videos != null && !videos.empty && (nextPageToken != null || prevPageToken != null)}" class="mt-4">
+        <ul class="pagination justify-content-center">
+            <li class="page-item" th:classappend="${prevPageToken == null ? 'disabled' : ''}">
+                <a class="page-link" th:href="@{${query != null ? '/search' : '/'}}(query=${query},pageToken=${prevPageToken})">
+                    <i class="fas fa-chevron-left"></i> Previous
+                </a>
+            </li>
+            <li class="page-item" th:classappend="${nextPageToken == null ? 'disabled' : ''}">
+                <a class="page-link" th:href="@{${query != null ? '/search' : '/'}}(query=${query},pageToken=${nextPageToken})">
+                    Next <i class="fas fa-chevron-right"></i>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</th:block>
+</html>

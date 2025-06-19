@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" 
+      th:replace="~{layout/default :: layout(~{::content}, ~{::scripts}, 'Login')}">
+
+<th:block th:fragment="content">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="text-center">Login</h3>
+                </div>
+                <div class="card-body">
+                    <!-- Error Alert -->
+                    <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                        <span th:text="${error}">Invalid username or password</span>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                    
+                    <!-- Logout Success Alert -->
+                    <div th:if="${param.logout}" class="alert alert-success alert-dismissible fade show" role="alert">
+                        <span>You have been logged out successfully</span>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+
+                    <!-- Registration Success Alert -->
+                    <div th:if="${param.registered}" class="alert alert-success alert-dismissible fade show" role="alert">
+                        <span>Registration successful! Please log in.</span>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                    
+                    <!-- Login Form -->
+                    <form th:action="@{/login}" method="post" class="needs-validation" novalidate>
+                        <div class="mb-3">
+                            <label for="username" class="form-label">Username</label>
+                            <input type="text" class="form-control" id="username" name="username" 
+                                   required autofocus 
+                                   minlength="3" maxlength="50">
+                            <div class="invalid-feedback">
+                                Please enter your username (3-50 characters)
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="password" class="form-label">Password</label>
+                            <div class="input-group has-validation">
+                                <input type="password" class="form-control" id="password" name="password" 
+                                       required minlength="6">
+                                <button class="btn btn-outline-secondary" type="button" id="togglePassword">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                                <div class="invalid-feedback">
+                                    Please enter your password
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3 form-check">
+                            <input type="checkbox" class="form-check-input" id="remember-me" name="remember-me">
+                            <label class="form-check-label" for="remember-me">Remember me</label>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary w-100" id="submitButton">
+                            <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                            Login
+                        </button>
+                    </form>
+                </div>
+                <div class="card-footer text-center">
+                    Don't have an account? <a th:href="@{/register}">Register here</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</th:block>
+
+<th:block th:fragment="scripts">
+    <script th:inline="javascript">
+        (function() {
+            'use strict';
+            
+            // Toggle password visibility
+            const togglePassword = document.getElementById('togglePassword');
+            const password = document.getElementById('password');
+            const form = document.querySelector('form');
+            const submitButton = document.getElementById('submitButton');
+            
+            togglePassword.addEventListener('click', function() {
+                const type = password.getAttribute('type') === 'password' ? 'text' : 'password';
+                password.setAttribute('type', type);
+                this.querySelector('i').classList.toggle('bi-eye');
+                this.querySelector('i').classList.toggle('bi-eye-slash');
+            });
+
+            // Form validation
+            form.addEventListener('submit', function(event) {
+                if (!this.checkValidity()) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                } else {
+                    // Show loading state
+                    submitButton.disabled = true;
+                    submitButton.querySelector('.spinner-border').classList.remove('d-none');
+                }
+                
+                this.classList.add('was-validated');
+            });
+        })();
+    </script>
+</th:block>
+</html>

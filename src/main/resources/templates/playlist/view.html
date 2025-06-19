@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html th:replace="~{layout/default :: html(content=~{::content}, scripts=~{::scripts}, title=${playlist.name})}">
+<th:block th:fragment="content">
+    <div class="mb-4">
+        <h2 th:text="${playlist.name}">Playlist Name</h2>
+        <p class="text-muted">
+            <span th:text="${playlist.videos.size()}">0</span> videos
+            • Created <span th:text="${#temporals.format(playlist.createdAt, 'MMM d, yyyy')}">Date</span>
+        </p>
+    </div>
+
+    <div class="row">
+        <!-- First video preview -->
+        <div class="col-lg-8 mb-4" th:if="${!playlist.videos.empty}">
+            <div class="ratio ratio-16x9">
+                <iframe th:src="@{'https://www.youtube.com/embed/' + ${playlist.videos[0].videoId}}"
+                        allowfullscreen></iframe>
+            </div>
+        </div>
+
+        <!-- Playlist videos -->
+        <div th:class="${playlist.videos.empty ? 'col-12' : 'col-lg-4'}">
+            <div class="list-group">
+                <div th:each="video, stat : ${playlist.videos}" 
+                     class="list-group-item d-flex align-items-center">
+                    <div class="me-3 text-muted" th:text="${stat.count}">1</div>
+                    <div class="flex-grow-1">
+                        <a th:href="@{/video/{id}(id=${video.videoId})}" 
+                           class="text-decoration-none text-dark">
+                            <div class="fw-bold text-truncate" th:text="${video.title}">Video Title</div>
+                            <small class="text-muted" th:text="${video.channelTitle}">Channel Name</small>
+                        </a>
+                    </div>
+                    <button class="btn btn-sm btn-outline-danger remove-video"
+                            th:data-video-id="${video.videoId}">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Empty State -->
+            <div th:if="${playlist.videos.empty}" class="text-center p-5 bg-light rounded">
+                <i class="fas fa-video fa-3x text-muted mb-3"></i>
+                <h3>No Videos Yet</h3>
+                <p class="text-muted">Start adding videos to your playlist while browsing.</p>
+            </div>
+        </div>
+    </div>
+</th:block>
+<th:block th:fragment="scripts">
+    <script th:inline="javascript">
+        const playlistId = /*[[${playlist.id}]]*/ '';
+
+        document.querySelectorAll('.remove-video').forEach(button => {
+            button.addEventListener('click', function() {
+                if (confirm('Remove this video from the playlist?')) {
+                    const videoId = this.dataset.videoId;
+                    
+                    fetch(`/api/playlists/${playlistId}/videos/${videoId}`, {
+                        method: 'DELETE'
+                    })
+                    .then(response => {
+                        if (response.ok) {
+                            window.location.reload();
+                        } else {
+                            throw new Error('Failed to remove video');
+                        }
+                    })
+                    .catch(error => alert(error.message));
+                }
+            });
+        });
+    </script>
+</th:block>
+</html>

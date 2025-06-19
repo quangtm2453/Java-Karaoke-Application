@@ -1,14 +1,13 @@
 package com.example.youtube_viewer.service;
 
+import com.example.youtube_viewer.entity.WatchHistory;
 import java.util.List;
 
-import com.example.youtube_viewer.entity.WatchHistory;
-
 public interface WatchHistoryService {
-    WatchHistory save(WatchHistory watchHistory);
-    WatchHistory findById(Long id);
-    List<WatchHistory> findAll();
-    void deleteById(Long id);
-    List<WatchHistory> findByUserId(Long userId);
-    List<WatchHistory> findByVideoId(Long videoId);
+    WatchHistory addToHistory(Long userId, String videoId);
+    List<WatchHistory> getUserHistory(Long userId);
+    void clearUserHistory(Long userId);
+    void removeFromHistory(Long userId, String videoId);
+    boolean hasWatched(Long userId, String videoId);
+    List<WatchHistory> getRecentHistory(Long userId, int limit);
 }
