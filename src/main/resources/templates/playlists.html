@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Danh sách phát - YouTube Karaoke</title>
+</head>
+<body>
+    <div th:replace="base :: layout(content=~{::content}, scripts=~{::scripts}, title='Danh sách phát')">
+        <div th:fragment="content">
+            <div class="container py-4">
+                <!-- Flash Messages -->
+                <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+                    <i class="fas fa-check-circle me-2"></i>
+                    <span th:text="${success}"></span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+                <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <span th:text="${error}"></span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+
+                <!-- Page Header -->
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <div class="page-header d-flex justify-content-between align-items-center">
+                            <div>
+                                <h1 class="h2 mb-2">
+                                    <i class="fas fa-list text-primary me-3"></i>
+                                    Danh sách phát
+                                </h1>
+                                <p class="text-muted mb-0">Quản lý các playlist của bạn</p>
+                            </div>
+                            <div class="header-actions">
+                                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#playlistModal">
+                                    <i class="fas fa-plus me-2"></i>Tạo playlist mới
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Playlists Content -->
+                <div class="row">
+                    <div class="col-12">
+                        <!-- Empty State -->
+                        <div th:if="${playlists == null or playlists.isEmpty()}" class="text-center py-5">
+                            <div class="empty-state">
+                                <i class="fas fa-list fa-4x text-muted mb-4"></i>
+                                <h4 class="text-muted mb-3">Chưa có playlist nào</h4>
+                                <p class="text-muted mb-4">Tạo playlist đầu tiên để bắt đầu sưu tập video yêu thích</p>
+                                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#playlistModal">
+                                    <i class="fas fa-plus me-2"></i>Tạo playlist mới
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Playlists Grid -->
+                        <div th:if="${playlists != null and !playlists.isEmpty()}" class="row g-4">
+                            <div th:each="playlist : ${playlists}" class="col-lg-4 col-md-6">
+                                <div class="playlist-card card h-100 border-0 shadow-sm">
+                                    <div class="playlist-thumbnail position-relative">
+                                        <div class="playlist-cover d-flex align-items-center justify-content-center bg-gradient">
+                                            <i class="fas fa-list fa-3x text-white"></i>
+                                        </div>
+                                        <div class="playlist-privacy">
+                                            <i th:class="${playlist.isPublic} ? 'fas fa-globe text-white' : 'fas fa-lock text-white'"></i>
+                                        </div>
+                                    </div>
+                                    <div class="card-body">
+                                        <h6 class="card-title playlist-title mb-2" th:text="${playlist.name}">Playlist Name</h6>
+                                        <p class="card-text text-muted small mb-2" th:text="${playlist.description != null and !playlist.description.isEmpty()} ? ${playlist.description} : 'Không có mô tả'">
+                                            Không có mô tả
+                                        </p>
+                                        <div class="playlist-meta">
+                                            <small class="text-muted">
+                                                <i class="fas fa-calendar me-1"></i>Tạo: <span th:text="${#temporals.format(playlist.createdAt, 'dd/MM/yyyy')}">01/01/2024</span>
+                                            </small>
+                                            <br>
+                                            <small class="text-muted">
+                                                <i class="fas fa-edit me-1"></i>Cập nhật: <span th:text="${#temporals.format(playlist.updatedAt, 'dd/MM/yyyy')}">01/01/2024</span>
+                                            </small>
+                                        </div>
+                                    </div>
+                                    <div class="card-footer bg-transparent border-0">
+                                        <div class="d-flex gap-2">
+                                            <a th:href="@{'/playlist/' + ${playlist.id}}" class="btn btn-primary btn-sm flex-grow-1">
+                                                <i class="fas fa-play me-1"></i>Xem
+                                            </a>
+                                            <button class="btn btn-outline-secondary btn-sm" th:onclick="'editPlaylist(' + ${playlist.id} + ')'">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <button class="btn btn-outline-danger btn-sm" th:onclick="'deletePlaylist(' + ${playlist.id} + ')'">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Create Playlist Modal -->
+            <div class="modal fade" id="playlistModal" tabindex="-1">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">
+                                <i class="fas fa-plus me-2"></i>Tạo playlist mới
+                            </h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <form th:action="@{/create-playlist}" method="post">
+                            <div class="modal-body">
+                                <div class="mb-3">
+                                    <label for="name" class="form-label">Tên playlist *</label>
+                                    <input type="text" class="form-control" id="name" name="name" required
+                                           placeholder="Nhập tên playlist...">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="description" class="form-label">Mô tả</label>
+                                    <textarea class="form-control" id="description" name="description" rows="3"
+                                              placeholder="Mô tả về playlist (tùy chọn)..."></textarea>
+                                </div>
+                                <div class="mb-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="isPublic" name="isPublic" value="true">
+                                        <label class="form-check-label" for="isPublic">
+                                            <i class="fas fa-globe me-1"></i>Công khai playlist
+                                            <small class="text-muted d-block">Cho phép người khác xem playlist này</small>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save me-1"></i>Tạo playlist
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div th:fragment="scripts">
+            <script>
+                async function editPlaylist(playlistId) {
+                    alert('Chức năng chỉnh sửa sẽ được triển khai sau!');
+                }
+
+                async function deletePlaylist(playlistId) {
+                    if (!confirm('Bạn có chắc muốn xóa playlist này? Hành động này không thể hoàn tác.')) return;
+
+                    try {
+                        const response = await fetch(`/api/playlist/${playlistId}/remove`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            }
+                        });
+
+                        const data = await response.json();
+
+                        if (data.success) {
+                            alert('Đã xóa playlist thành công!');
+                            window.location.reload();
+                        } else {
+                            alert(data.error || 'Có lỗi xảy ra khi xóa playlist');
+                        }
+
+                    } catch (error) {
+                        console.error('Error deleting playlist:', error);
+                        alert('Có lỗi xảy ra khi xóa playlist');
+                    }
+                }
+            </script>
+        </div>
+    </div>
+</body>
+</html>

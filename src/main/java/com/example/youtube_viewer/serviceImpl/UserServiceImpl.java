@@ -1,58 +1,50 @@
 package com.example.youtube_viewer.serviceImpl;
-
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Optional;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.example.youtube_viewer.entity.User;
 import com.example.youtube_viewer.repository.UserRepository;
 import com.example.youtube_viewer.service.UserService;
 
 @Service
+@Transactional
 public class UserServiceImpl implements UserService {
-    private static final Logger logger = LoggerFactory.getLogger(UserServiceImpl.class);
 
-    @Autowired
-    private UserRepository userRepository;
+    private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
-    @Override
-    public User registerUser(User user) {
-        // Check for existing username/email
-        if (existsByUsername(user.getUsername())) {
-            throw new RuntimeException("Username already exists");
-        }
-        if (existsByEmail(user.getEmail())) {
-            throw new RuntimeException("Email already exists");
-        }
-
-        // Get password from transient field
-        String rawPassword = user.getPassword();
-        if (rawPassword == null || rawPassword.trim().isEmpty()) {
-            throw new RuntimeException("Password is required");
-        }
-
-        // Hash the password
-        user.setPasswordHash(hashPassword(rawPassword));
-        user.setCreatedAt(LocalDateTime.now());
-        user.setIsActive(true);
-
-        // Clear the transient password field
-        user.setPassword(null);
-        
-        return userRepository.save(user);
+    public UserServiceImpl(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+        this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Override
-    public Optional<User> findById(Long id) {
-        return userRepository.findById(id);
+    public User createUser(String username, String email, String password) {
+        System.out.println("Creating user: " + username + ", email: " + email); // Debug log
+        
+        if (existsByUsername(username)) {
+            throw new RuntimeException("Tên đăng nhập đã tồn tại");
+        }
+        if (existsByEmail(email)) {
+            throw new RuntimeException("Email đã được sử dụng");
+        }
+
+        User user = new User();
+        user.setUsername(username);
+        user.setEmail(email);
+        user.setPasswordHash(passwordEncoder.encode(password));
+        user.setActive(true);
+        user.setCreatedAt(LocalDateTime.now());
+
+        User savedUser = userRepository.save(user);
+        System.out.println("User created successfully with ID: " + savedUser.getId()); // Debug log
+        return savedUser;
     }
 
     @Override
@@ -66,21 +58,8 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public User updateUser(User user) {
-        if (!userRepository.existsById(user.getId())) {
-            throw new RuntimeException("User not found");
-        }
-        return userRepository.save(user);
-    }
-
-    @Override
-    public void deleteUser(Long userId) {
-        userRepository.deleteById(userId);
-    }
-
-    @Override
-    public List<User> getAllUsers() {
-        return userRepository.findAll();
+    public Optional<User> findById(Long id) {
+        return userRepository.findById(id);
     }
 
     @Override
@@ -102,26 +81,30 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public boolean verifyPassword(String rawPassword, String encodedPassword) {
-        String hashedInput = hashPassword(rawPassword);
-        return hashedInput.equals(encodedPassword);
+    public User save(User user) {
+        return userRepository.save(user);
     }
 
-    // Private utility method for password hashing
-    private String hashPassword(String password) {
-        try {
-            MessageDigest digest = MessageDigest.getInstance("SHA-256");
-            byte[] hash = digest.digest(password.getBytes(StandardCharsets.UTF_8));
-            StringBuilder hexString = new StringBuilder();
-            for (byte b : hash) {
-                String hex = Integer.toHexString(0xff & b);
-                if (hex.length() == 1) hexString.append('0');
-                hexString.append(hex);
-            }
-            return hexString.toString();
-        } catch (NoSuchAlgorithmException e) {
-            logger.error("Error hashing password", e);
-            throw new RuntimeException("Could not hash password", e);
-        }
+    @Override
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        System.out.println("Loading user by username: " + username); // Debug log
+        
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> {
+                    System.out.println("User not found: " + username); // Debug log
+                    return new UsernameNotFoundException("User not found: " + username);
+                });
+
+        System.out.println("User found: " + user.getUsername() + ", active: " + user.isActive()); // Debug log
+
+        return org.springframework.security.core.userdetails.User.builder()
+                .username(user.getUsername())
+                .password(user.getPasswordHash())
+                .authorities("ROLE_USER")
+                .accountExpired(false)
+                .accountLocked(!user.isActive())
+                .credentialsExpired(false)
+                .disabled(!user.isActive())
+                .build();
     }
 }

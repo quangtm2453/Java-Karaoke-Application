@@ -1,20 +1,18 @@
 package com.example.youtube_viewer.service;
 
-import java.util.List;
+import org.springframework.security.core.userdetails.UserDetailsService;
+
 import java.util.Optional;
 
 import com.example.youtube_viewer.entity.User;
 
-public interface UserService {
-    User registerUser(User user);
+public interface UserService extends UserDetailsService {
+    User createUser(String username, String email, String password);
     Optional<User> findByUsername(String username);
     Optional<User> findByEmail(String email);
     Optional<User> findById(Long id);
-    User updateUser(User user);
-    void deleteUser(Long userId);
-    List<User> getAllUsers();
     boolean existsByUsername(String username);
     boolean existsByEmail(String email);
     void updateLastLogin(Long userId);
-    boolean verifyPassword(String rawPassword, String encodedPassword);
+    User save(User user);
 }

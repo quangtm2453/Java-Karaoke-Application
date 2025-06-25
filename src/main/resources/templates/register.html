@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Đăng ký - YouTube Karaoke</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="/css/style.css" rel="stylesheet">
+</head>
+<body>
+    <div class="auth-container">
+        <div class="auth-card">
+            <div class="auth-header">
+                <h2 class="mb-0">
+                    <i class="fas fa-microphone-alt me-2"></i>
+                    YouTube Karaoke
+                </h2>
+                <p class="mb-0 mt-2">Tạo tài khoản mới</p>
+            </div>
+            <div class="auth-body">
+                <!-- Error Messages -->
+                <div th:if="${error}" class="alert alert-danger">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <span th:text="${error}">Error message</span>
+                </div>
+
+                <!-- Register Form -->
+                <form th:action="@{/register}" method="post" class="needs-validation" novalidate id="registerForm">
+                    <div class="mb-3">
+                        <label for="username" class="form-label">
+                            <i class="fas fa-user me-1"></i>Tên đăng nhập *
+                        </label>
+                        <input type="text" class="form-control" id="username" name="username" required 
+                               placeholder="Nhập tên đăng nhập..." minlength="3" maxlength="50">
+                        <div class="invalid-feedback">
+                            Tên đăng nhập phải có ít nhất 3 ký tự
+                        </div>
+                        <small class="form-text text-muted">Chỉ sử dụng chữ cái, số và dấu gạch dưới</small>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="email" class="form-label">
+                            <i class="fas fa-envelope me-1"></i>Email *
+                        </label>
+                        <input type="email" class="form-control" id="email" name="email" required 
+                               placeholder="Nhập địa chỉ email...">
+                        <div class="invalid-feedback">
+                            Vui lòng nhập địa chỉ email hợp lệ
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="password" class="form-label">
+                            <i class="fas fa-lock me-1"></i>Mật khẩu *
+                        </label>
+                        <div class="input-group">
+                            <input type="password" class="form-control" id="password" name="password" required 
+                                   placeholder="Nhập mật khẩu..." minlength="6">
+                            <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('password')">
+                                <i class="fas fa-eye" id="passwordToggle"></i>
+                            </button>
+                        </div>
+                        <div class="invalid-feedback">
+                            Mật khẩu phải có ít nhất 6 ký tự
+                        </div>
+                        <div class="password-strength mt-1">
+                            <div class="progress" style="height: 5px;">
+                                <div class="progress-bar" id="passwordStrength" role="progressbar" style="width: 0%"></div>
+                            </div>
+                            <small class="text-muted" id="passwordStrengthText">Độ mạnh mật khẩu</small>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="confirmPassword" class="form-label">
+                            <i class="fas fa-lock me-1"></i>Xác nhận mật khẩu *
+                        </label>
+                        <div class="input-group">
+                            <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" required 
+                                   placeholder="Nhập lại mật khẩu...">
+                            <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('confirmPassword')">
+                                <i class="fas fa-eye" id="confirmPasswordToggle"></i>
+                            </button>
+                        </div>
+                        <div class="invalid-feedback" id="confirmPasswordFeedback">
+                            Vui lòng xác nhận mật khẩu
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" class="form-check-input" id="terms" required>
+                        <label class="form-check-label" for="terms">
+                            Tôi đồng ý với <a href="#" class="text-decoration-none">Điều khoản sử dụng</a> 
+                            và <a href="#" class="text-decoration-none">Chính sách bảo mật</a>
+                        </label>
+                        <div class="invalid-feedback">
+                            Bạn phải đồng ý với điều khoản sử dụng
+                        </div>
+                    </div>
+                    
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary btn-lg" id="registerBtn">
+                            <i class="fas fa-user-plus me-2"></i>Đăng ký
+                        </button>
+                    </div>
+                </form>
+
+                <!-- Divider -->
+                <div class="text-center my-4">
+                    <span class="text-muted">hoặc</span>
+                </div>
+
+                <!-- Login Link -->
+                <div class="text-center">
+                    <p class="mb-0">Đã có tài khoản?</p>
+                    <a href="/login" class="btn btn-outline-primary">
+                        <i class="fas fa-sign-in-alt me-2"></i>Đăng nhập ngay
+                    </a>
+                </div>
+
+                <!-- Back to Home -->
+                <div class="text-center mt-3">
+                    <a href="/" class="text-decoration-none">
+                        <i class="fas fa-arrow-left me-1"></i>Về trang chủ
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Form validation
+        (function() {
+            'use strict';
+            window.addEventListener('load', function() {
+                var forms = document.getElementsByClassName('needs-validation');
+                var validation = Array.prototype.filter.call(forms, function(form) {
+                    form.addEventListener('submit', function(event) {
+                        if (form.checkValidity() === false) {
+                            event.preventDefault();
+                            event.stopPropagation();
+                        }
+                        form.classList.add('was-validated');
+                    }, false);
+                });
+            }, false);
+        })();
+
+        // Toggle password visibility
+        function togglePassword(fieldId) {
+            const passwordInput = document.getElementById(fieldId);
+            const passwordToggle = document.getElementById(fieldId + 'Toggle');
+            
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                passwordToggle.className = 'fas fa-eye-slash';
+            } else {
+                passwordInput.type = 'password';
+                passwordToggle.className = 'fas fa-eye';
+            }
+        }
+
+        // Password strength checker
+        document.getElementById('password').addEventListener('input', function() {
+            const password = this.value;
+            const strengthBar = document.getElementById('passwordStrength');
+            const strengthText = document.getElementById('passwordStrengthText');
+            
+            let strength = 0;
+            let text = 'Rất yếu';
+            let color = 'bg-danger';
+            
+            if (password.length >= 6) strength += 1;
+            if (password.match(/[a-z]/)) strength += 1;
+            if (password.match(/[A-Z]/)) strength += 1;
+            if (password.match(/[0-9]/)) strength += 1;
+            if (password.match(/[^a-zA-Z0-9]/)) strength += 1;
+            
+            switch (strength) {
+                case 0:
+                case 1:
+                    text = 'Rất yếu';
+                    color = 'bg-danger';
+                    break;
+                case 2:
+                    text = 'Yếu';
+                    color = 'bg-warning';
+                    break;
+                case 3:
+                    text = 'Trung bình';
+                    color = 'bg-info';
+                    break;
+                case 4:
+                    text = 'Mạnh';
+                    color = 'bg-success';
+                    break;
+                case 5:
+                    text = 'Rất mạnh';
+                    color = 'bg-success';
+                    break;
+            }
+            
+            strengthBar.className = `progress-bar ${color}`;
+            strengthBar.style.width = `${(strength / 5) * 100}%`;
+            strengthText.textContent = text;
+        });
+
+        // Confirm password validation
+        document.getElementById('confirmPassword').addEventListener('input', function() {
+            const password = document.getElementById('password').value;
+            const confirmPassword = this.value;
+            const feedback = document.getElementById('confirmPasswordFeedback');
+            
+            if (confirmPassword && password !== confirmPassword) {
+                this.setCustomValidity('Mật khẩu xác nhận không khớp');
+                feedback.textContent = 'Mật khẩu xác nhận không khớp';
+            } else {
+                this.setCustomValidity('');
+                feedback.textContent = 'Vui lòng xác nhận mật khẩu';
+            }
+        });
+
+        // Form submission
+        document.getElementById('registerForm').addEventListener('submit', function(e) {
+            const submitBtn = document.getElementById('registerBtn');
+            const originalText = submitBtn.innerHTML;
+            
+            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Đang đăng ký...';
+            submitBtn.disabled = true;
+            
+            // Re-enable button after 5 seconds (fallback)
+            setTimeout(() => {
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+            }, 5000);
+        });
+
+        // Auto-hide alerts
+        setTimeout(function() {
+            const alerts = document.querySelectorAll('.alert');
+            alerts.forEach(alert => {
+                if (alert.classList.contains('alert-danger')) {
+                    alert.style.transition = 'opacity 0.5s';
+                    alert.style.opacity = '0';
+                    setTimeout(() => alert.remove(), 500);
+                }
+            });
+        }, 5000);
+    </script>
+</body>
+</html>

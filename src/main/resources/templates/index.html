@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" 
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:replace="~{base :: layout(~{::title}, ~{::content})}">
+<head>
+    <title>Trang chủ</title>
+</head>
+<body>
+    <div th:fragment="content">
+        <!-- Hero Section -->
+        <section class="hero-section bg-gradient text-white py-5">
+            <div class="container">
+                <div class="row align-items-center">
+                    <div class="col-lg-6">
+                        <h1 class="display-4 fw-bold mb-4">
+                            <i class="fas fa-microphone-alt me-3"></i>
+                            YouTube Karaoke
+                        </h1>
+                        <p class="lead mb-4">
+                            Hát karaoke trực tuyến với hàng triệu bài hát từ YouTube. 
+                            Tạo playlist, theo dõi lịch sử và thưởng thức âm nhạc!
+                        </p>
+                        <div class="d-flex gap-3">
+                            <a href="/search" class="btn btn-light btn-lg">
+                                <i class="fas fa-search me-2"></i>Tìm bài hát
+                            </a>
+                            <a href="/register" class="btn btn-outline-light btn-lg" sec:authorize="isAnonymous()">
+                                <i class="fas fa-user-plus me-2"></i>Đăng ký ngay
+                            </a>
+                        </div>
+                    </div>
+                    <div class="col-lg-6 text-center">
+                        <div class="hero-animation">
+                            <i class="fas fa-music fa-10x text-white-50"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Search Section -->
+        <section class="py-5">
+            <div class="container">
+                <div class="row justify-content-center">
+                    <div class="col-lg-8">
+                        <div class="search-card card shadow-lg border-0">
+                            <div class="card-body p-4">
+                                <h3 class="text-center mb-4">
+                                    <i class="fas fa-search text-primary me-2"></i>
+                                    Tìm kiếm bài hát karaoke
+                                </h3>
+                                <form id="searchForm" class="d-flex gap-2">
+                                    <input type="text" id="searchInput" class="form-control form-control-lg" 
+                                           placeholder="Nhập tên bài hát, ca sĩ..." required>
+                                    <button type="submit" class="btn btn-primary btn-lg px-4">
+                                        <i class="fas fa-search"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Features Section -->
+        <section class="py-5">
+            <div class="container">
+                <h2 class="text-center mb-5">Tính năng nổi bật</h2>
+                <div class="row g-4">
+                    <div class="col-md-4">
+                        <div class="feature-card card h-100 border-0 shadow-sm">
+                            <div class="card-body text-center p-4">
+                                <div class="feature-icon mb-3">
+                                    <i class="fas fa-search fa-3x text-primary"></i>
+                                </div>
+                                <h5 class="card-title">Tìm kiếm thông minh</h5>
+                                <p class="card-text">Tìm kiếm hàng triệu bài hát karaoke từ YouTube với thuật toán thông minh.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="feature-card card h-100 border-0 shadow-sm">
+                            <div class="card-body text-center p-4">
+                                <div class="feature-icon mb-3">
+                                    <i class="fas fa-list fa-3x text-success"></i>
+                                </div>
+                                <h5 class="card-title">Quản lý Playlist</h5>
+                                <p class="card-text">Tạo và quản lý playlist cá nhân, sắp xếp bài hát theo sở thích.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="feature-card card h-100 border-0 shadow-sm">
+                            <div class="card-body text-center p-4">
+                                <div class="feature-icon mb-3">
+                                    <i class="fas fa-history fa-3x text-info"></i>
+                                </div>
+                                <h5 class="card-title">Lịch sử xem</h5>
+                                <p class="card-text">Theo dõi lịch sử các bài hát đã xem, dễ dàng tìm lại bài yêu thích.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Page Scripts -->
+    <th:block th:fragment="scripts">
+        <script>
+            // Search form handler
+            document.addEventListener('DOMContentLoaded', function() {
+                document.getElementById('searchForm').addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    const query = document.getElementById('searchInput').value.trim();
+                    if (query) {
+                        window.location.href = `/search?q=${encodeURIComponent(query)}`;
+                    }
+                });
+            });
+        </script>
+    </th:block>
+</body>
+</html>

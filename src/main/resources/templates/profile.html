@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <title>Hồ sơ cá nhân - YouTube Karaoke</title>
+</head>
+<body>
+    <div th:replace="base :: layout(content=~{::content}, scripts=~{::scripts}, title='Hồ sơ cá nhân')">
+        <div th:fragment="content">
+            <div class="container py-4">
+                <!-- Profile Header -->
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <div class="profile-header card border-0 shadow-sm">
+                            <div class="card-body p-4">
+                                <div class="row align-items-center">
+                                    <div class="col-md-3 text-center">
+                                        <div class="profile-avatar mb-3">
+                                            <div class="avatar-circle bg-gradient d-flex align-items-center justify-content-center">
+                                                <i class="fas fa-user fa-4x text-white"></i>
+                                            </div>
+                                        </div>
+                                        <button class="btn btn-outline-primary btn-sm" onclick="changeAvatar()">
+                                            <i class="fas fa-camera me-1"></i>Đổi ảnh
+                                        </button>
+                                    </div>
+                                    <div class="col-md-9">
+                                        <div class="profile-info">
+                                            <h2 class="mb-2" th:text="${user.username}">Username</h2>
+                                            <p class="text-muted mb-3" th:id="userEmail" th:text="${user.email}">user@example.com</p>
+                                            <div class="profile-stats d-flex gap-4 mb-3">
+                                                <div class="stat-item">
+                                                    <h5 class="mb-0" id="playlistCount">0</h5>
+                                                    <small class="text-muted">Playlist</small>
+                                                </div>
+                                                <div class="stat-item">
+                                                    <h5 class="mb-0" id="historyCount">0</h5>
+                                                    <small class="text-muted">Video đã xem</small>
+                                                </div>
+                                                <div class="stat-item">
+                                                    <h5 class="mb-0" id="joinDate">2024</h5>
+                                                    <small class="text-muted">Tham gia</small>
+                                                </div>
+                                            </div>
+                                            <div class="profile-actions d-flex gap-2">
+                                                <button class="btn btn-primary" onclick="editProfile()">
+                                                    <i class="fas fa-edit me-2"></i>Chỉnh sửa hồ sơ
+                                                </button>
+                                                <button class="btn btn-outline-secondary" onclick="changePassword()">
+                                                    <i class="fas fa-key me-2"></i>Đổi mật khẩu
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Profile Tabs -->
+                <div class="row">
+                    <div class="col-12">
+                        <ul class="nav nav-tabs mb-4" id="profileTabs" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link active" id="overview-tab" data-bs-toggle="tab" 
+                                        data-bs-target="#overview" type="button" role="tab">
+                                    <i class="fas fa-chart-line me-2"></i>Tổng quan
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="recent-activity-tab" data-bs-toggle="tab" 
+                                        data-bs-target="#recent-activity" type="button" role="tab">
+                                    <i class="fas fa-clock me-2"></i>Hoạt động gần đây
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="settings-tab" data-bs-toggle="tab" 
+                                        data-bs-target="#settings" type="button" role="tab">
+                                    <i class="fas fa-cog me-2"></i>Cài đặt
+                                </button>
+                            </li>
+                        </ul>
+
+                        <!-- Tab Content -->
+                        <div class="tab-content" id="profileTabContent">
+                            <!-- Overview Tab -->
+                            <div class="tab-pane fade show active" id="overview" role="tabpanel">
+                                <div class="row g-4">
+                                    <!-- Quick Stats -->
+                                    <div class="col-lg-8">
+                                        <div class="card border-0 shadow-sm">
+                                            <div class="card-header bg-transparent border-0">
+                                                <h5 class="mb-0">
+                                                    <i class="fas fa-chart-bar me-2"></i>
+                                                    Thống kê hoạt động
+                                                </h5>
+                                            </div>
+                                            <div class="card-body">
+                                                <div class="row g-3">
+                                                    <div class="col-md-6">
+                                                        <div class="stat-card bg-primary bg-opacity-10 p-3 rounded">
+                                                            <div class="d-flex align-items-center">
+                                                                <div class="stat-icon me-3">
+                                                                    <i class="fas fa-play-circle fa-2x text-primary"></i>
+                                                                </div>
+                                                                <div>
+                                                                    <h4 class="mb-0" id="totalWatched">0</h4>
+                                                                    <small class="text-muted">Video đã xem</small>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <div class="stat-card bg-success bg-opacity-10 p-3 rounded">
+                                                            <div class="d-flex align-items-center">
+                                                                <div class="stat-icon me-3">
+                                                                    <i class="fas fa-list fa-2x text-success"></i>
+                                                                </div>
+                                                                <div>
+                                                                    <h4 class="mb-0" id="totalPlaylists">0</h4>
+                                                                    <small class="text-muted">Playlist đã tạo</small>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <div class="stat-card bg-info bg-opacity-10 p-3 rounded">
+                                                            <div class="d-flex align-items-center">
+                                                                <div class="stat-icon me-3">
+                                                                    <i class="fas fa-clock fa-2x text-info"></i>
+                                                                </div>
+                                                                <div>
+                                                                    <h4 class="mb-0" id="watchTime">0h</h4>
+                                                                    <small class="text-muted">Thời gian xem</small>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <div class="stat-card bg-warning bg-opacity-10 p-3 rounded">
+                                                            <div class="d-flex align-items-center">
+                                                                <div class="stat-icon me-3">
+                                                                    <i class="fas fa-heart fa-2x text-warning"></i>
+                                                                </div>
+                                                                <div>
+                                                                    <h4 class="mb-0" id="favoriteGenre">Bolero</h4>
+                                                                    <small class="text-muted">Thể loại yêu thích</small>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Quick Actions -->
+                                    <div class="col-lg-4">
+                                        <div class="card border-0 shadow-sm">
+                                            <div class="card-header bg-transparent border-0">
+                                                <h5 class="mb-0">
+                                                    <i class="fas fa-bolt me-2"></i>
+                                                    Thao tác nhanh
+                                                </h5>
+                                            </div>
+                                            <div class="card-body">
+                                                <div class="d-grid gap-2">
+                                                    <a href="/search" class="btn btn-outline-primary">
+                                                        <i class="fas fa-search me-2"></i>Tìm kiếm video
+                                                    </a>
+                                                    <button class="btn btn-outline-success" onclick="showCreatePlaylistModal()">
+                                                        <i class="fas fa-plus me-2"></i>Tạo playlist mới
+                                                    </button>
+                                                    <a href="/history" class="btn btn-outline-info">
+                                                        <i class="fas fa-history me-2"></i>Xem lịch sử
+                                                    </a>
+                                                    <a href="/playlists" class="btn btn-outline-warning">
+                                                        <i class="fas fa-list me-2"></i>Quản lý playlist
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Recent Activity Tab -->
+                            <div class="tab-pane fade" id="recent-activity" role="tabpanel">
+                                <div class="card border-0 shadow-sm">
+                                    <div class="card-header bg-transparent border-0">
+                                        <h5 class="mb-0">
+                                            <i class="fas fa-clock me-2"></i>
+                                            Hoạt động gần đây
+                                        </h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div id="recentActivityList">
+                                            <div class="text-center py-4">
+                                                <div class="spinner-border text-primary" role="status">
+                                                    <span class="visually-hidden">Đang tải...</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Settings Tab -->
+                            <div class="tab-pane fade" id="settings" role="tabpanel">
+                                <div class="row g-4">
+                                    <div class="col-lg-8">
+                                        <div class="card border-0 shadow-sm">
+                                            <div class="card-header bg-transparent border-0">
+                                                <h5 class="mb-0">
+                                                    <i class="fas fa-cog me-2"></i>
+                                                    Cài đặt tài khoản
+                                                </h5>
+                                            </div>
+                                            <div class="card-body">
+                                                <form id="settingsForm">
+                                                    <div class="mb-3">
+                                                        <label class="form-label">Thông báo</label>
+                                                        <div class="form-check">
+                                                            <input class="form-check-input" type="checkbox" id="emailNotifications" checked>
+                                                            <label class="form-check-label" for="emailNotifications">
+                                                                Nhận thông báo qua email
+                                                            </label>
+                                                        </div>
+                                                        <div class="form-check">
+                                                            <input class="form-check-input" type="checkbox" id="playlistNotifications" checked>
+                                                            <label class="form-check-label" for="playlistNotifications">
+                                                                Thông báo playlist mới
+                                                            </label>
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    <div class="mb-3">
+                                                        <label class="form-label">Quyền riêng tư</label>
+                                                        <div class="form-check">
+                                                            <input class="form-check-input" type="checkbox" id="publicProfile">
+                                                            <label class="form-check-label" for="publicProfile">
+                                                                Hồ sơ công khai
+                                                            </label>
+                                                        </div>
+                                                        <div class="form-check">
+                                                            <input class="form-check-input" type="checkbox" id="showActivity">
+                                                            <label class="form-check-label" for="showActivity">
+                                                                Hiển thị hoạt động
+                                                            </label>
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    <div class="mb-3">
+                                                        <label for="autoplay" class="form-label">Tự động phát</label>
+                                                        <select class="form-select" id="autoplay">
+                                                            <option value="on">Bật</option>
+                                                            <option value="off">Tắt</option>
+                                                            <option value="wifi">Chỉ khi có WiFi</option>
+                                                        </select>
+                                                    </div>
+                                                    
+                                                    <div class="mb-3">
+                                                        <label for="quality" class="form-label">Chất lượng video mặc định</label>
+                                                        <select class="form-select" id="quality">
+                                                            <option value="auto">Tự động</option>
+                                                            <option value="720p">720p</option>
+                                                            <option value="480p">480p</option>
+                                                            <option value="360p">360p</option>
+                                                        </select>
+                                                    </div>
+                                                    
+                                                    <button type="submit" class="btn btn-primary">
+                                                        <i class="fas fa-save me-2"></i>Lưu cài đặt
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="col-lg-4">
+                                        <div class="card border-0 shadow-sm border-danger">
+                                            <div class="card-header bg-transparent border-0">
+                                                <h5 class="mb-0 text-danger">
+                                                    <i class="fas fa-exclamation-triangle me-2"></i>
+                                                    Vùng nguy hiểm
+                                                </h5>
+                                            </div>
+                                            <div class="card-body">
+                                                <p class="text-muted small mb-3">
+                                                    Các hành động này không thể hoàn tác
+                                                </p>
+                                                <div class="d-grid gap-2">
+                                                    <button class="btn btn-outline-warning" onclick="clearAllData()">
+                                                        <i class="fas fa-broom me-2"></i>Xóa tất cả dữ liệu
+                                                    </button>
+                                                    <button class="btn btn-outline-danger" onclick="deleteAccount()">
+                                                        <i class="fas fa-user-times me-2"></i>Xóa tài khoản
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div th:fragment="scripts">
+            <script>
+                document.addEventListener('DOMContentLoaded', function() {
+                    loadProfileData();
+                    setupEventListeners();
+                });
+
+                function setupEventListeners() {
+                    // Settings form
+                    document.getElementById('settingsForm').addEventListener('submit', function(e) {
+                        e.preventDefault();
+                        saveSettings();
+                    });
+
+                    // Tab switching
+                    document.getElementById('recent-activity-tab').addEventListener('click', function() {
+                        loadRecentActivity();
+                    });
+                }
+
+                async function loadProfileData() {
+                    try {
+                        // Load user stats
+                        const statsResponse = await fetch('/api/user/stats');
+                        const stats = await statsResponse.json();
+                        
+                        if (stats) {
+                            document.getElementById('playlistCount').textContent = stats.playlistCount || 0;
+                            document.getElementById('historyCount').textContent = stats.historyCount || 0;
+                            document.getElementById('totalWatched').textContent = stats.totalWatched || 0;
+                            document.getElementById('totalPlaylists').textContent = stats.playlistCount || 0;
+                            document.getElementById('watchTime').textContent = (stats.watchTime || 0) + 'h';
+                            
+                            if (stats.joinDate) {
+                                document.getElementById('joinDate').textContent = new Date(stats.joinDate).getFullYear();
+                            }
+                        }
+
+                    } catch (error) {
+                        console.error('Error loading profile data:', error);
+                    }
+                }
+
+                async function loadRecentActivity() {
+                    try {
+                        const container = document.getElementById('recentActivityList');
+                        container.innerHTML = `
+                            <div class="text-center py-4">
+                                <div class="spinner-border text-primary" role="status">
+                                    <span class="visually-hidden">Đang tải...</span>
+                                </div>
+                            </div>
+                        `;
+
+                        const response = await fetch('/api/user/activity?limit=20');
+                        const data = await response.json();
+
+                        if (data.activities && data.activities.length > 0) {
+                            displayRecentActivity(data.activities);
+                        } else {
+                            container.innerHTML = `
+                                <div class="text-center py-4 text-muted">
+                                    <i class="fas fa-clock fa-3x mb-3"></i>
+                                    <p>Chưa có hoạt động nào</p>
+                                </div>
+                            `;
+                        }
+
+                    } catch (error) {
+                        console.error('Error loading recent activity:', error);
+                        document.getElementById('recentActivityList').innerHTML = `
+                            <div class="alert alert-danger">
+                                <i class="fas fa-exclamation-triangle me-2"></i>
+                                Không thể tải hoạt động gần đây
+                            </div>
+                        `;
+                    }
+                }
+
+                function displayRecentActivity(activities) {
+                    const container = document.getElementById('recentActivityList');
+                    container.innerHTML = '';
+
+                    activities.forEach(activity => {
+                        const activityItem = createActivityItem(activity);
+                        container.appendChild(activityItem);
+                    });
+                }
+
+                function createActivityItem(activity) {
+                    const div = document.createElement('div');
+                    div.className = 'activity-item d-flex align-items-center p-3 border-bottom';
+
+                    const timeAgo = formatTimeAgo(new Date(activity.timestamp));
+                    let icon = 'fas fa-play';
+                    let text = '';
+
+                    switch (activity.type) {
+                        case 'watch':
+                            icon = 'fas fa-play text-primary';
+                            text = `Đã xem video "${activity.title}"`;
+                            break;
+                        case 'playlist_create':
+                            icon = 'fas fa-plus text-success';
+                            text = `Đã tạo playlist "${activity.title}"`;
+                            break;
+                        case 'playlist_add':
+                            icon = 'fas fa-list text-info';
+                            text = `Đã thêm video vào playlist "${activity.title}"`;
+                            break;
+                        default:
+                            text = activity.description || 'Hoạt động không xác định';
+                    }
+
+                    div.innerHTML = `
+                        <div class="activity-icon me-3">
+                            <i class="${icon}"></i>
+                        </div>
+                        <div class="activity-content flex-grow-1">
+                            <p class="mb-1">${text}</p>
+                            <small class="text-muted">${timeAgo}</small>
+                        </div>
+                    `;
+
+                    return div;
+                }
+
+                function formatTimeAgo(date) {
+                    const now = new Date();
+                    const diffTime = Math.abs(now - date);
+                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                    const diffHours = Math.ceil(diffTime / (1000 * 60 * 60));
+                    const diffMinutes = Math.ceil(diffTime / (1000 * 60));
+
+                    if (diffMinutes < 60) {
+                        return `${diffMinutes} phút trước`;
+                    } else if (diffHours < 24) {
+                        return `${diffHours} giờ trước`;
+                    } else if (diffDays < 7) {
+                        return `${diffDays} ngày trước`;
+                    } else {
+                        return date.toLocaleDateString('vi-VN');
+                    }
+                }
+
+                function editProfile() {
+                    // Show edit profile modal or redirect to edit page
+                    showToast('Tính năng chỉnh sửa hồ sơ sẽ được triển khai sau', 'info');
+                }
+
+                function changePassword() {
+                    // Show change password modal
+                    showToast('Tính năng đổi mật khẩu sẽ được triển khai sau', 'info');
+                }
+
+                function changeAvatar() {
+                    // Show avatar upload modal
+                    showToast('Tính năng đổi ảnh đại diện sẽ được triển khai sau', 'info');
+                }
+
+                async function saveSettings() {
+                    const settings = {
+                        emailNotifications: document.getElementById('emailNotifications').checked,
+                        playlistNotifications: document.getElementById('playlistNotifications').checked,
+                        publicProfile: document.getElementById('publicProfile').checked,
+                        showActivity: document.getElementById('showActivity').checked,
+                        autoplay: document.getElementById('autoplay').value,
+                        quality: document.getElementById('quality').value
+                    };
+
+                    try {
+                        const response = await fetch('/api/user/settings', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify(settings)
+                        });
+
+                        const data = await response.json();
+
+                        if (data.success) {
+                            showToast('Đã lưu cài đặt', 'success');
+                        } else {
+                            showToast(data.error || 'Có lỗi xảy ra', 'error');
+                        }
+
+                    } catch (error) {
+                        console.error('Error saving settings:', error);
+                        showToast('Có lỗi xảy ra khi lưu cài đặt', 'error');
+                    }
+                }
+
+                function clearAllData() {
+                    if (!confirm('Bạn có chắc muốn xóa tất cả dữ liệu? Hành động này không thể hoàn tác.')) return;
+                    
+                    showToast('Tính năng xóa dữ liệu sẽ được triển khai sau', 'warning');
+                }
+
+                function deleteAccount() {
+                    if (!confirm('Bạn có chắc muốn xóa tài khoản? Hành động này không thể hoàn tác.')) return;
+                    
+                    showToast('Tính năng xóa tài khoản sẽ được triển khai sau', 'warning');
+                }
+            </script>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <title th:text="${playlist != null ? playlist.name + ' - YouTube Karaoke' : 'Playlist - YouTube Karaoke'}">Playlist - YouTube Karaoke</title>
+</head>
+<body>
+    <div th:replace="base :: layout(content=~{::content}, scripts=~{::scripts}, title=${playlist != null ? playlist.name : 'Playlist'})">
+        <div th:fragment="content">
+            <div class="container py-4">
+                <!-- Playlist Header -->
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <div class="playlist-header card border-0 shadow-sm">
+                            <div class="card-body p-4">
+                                <div class="row align-items-center">
+                                    <div class="col-md-3">
+                                        <div class="playlist-cover-large d-flex align-items-center justify-content-center bg-gradient">
+                                            <i class="fas fa-list fa-5x text-white"></i>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-9">
+                                        <div class="playlist-info">
+                                            <div class="d-flex align-items-center mb-2">
+                                                <h1 class="h3 mb-0 me-3" th:text="${playlist.name}">Playlist Name</h1>
+                                                <span class="badge bg-secondary" th:if="${!playlist.public}">
+                                                    <i class="fas fa-lock me-1"></i>Riêng tư
+                                                </span>
+                                                <span class="badge bg-success" th:if="${playlist.public}">
+                                                    <i class="fas fa-globe me-1"></i>Công khai
+                                                </span>
+                                            </div>
+                                            <p class="text-muted mb-3" th:text="${playlist.description ?: 'Không có mô tả'}">Playlist description</p>
+                                            <div class="playlist-meta d-flex flex-wrap gap-4 mb-3">
+                                                <small class="text-muted">
+                                                    <i class="fas fa-calendar me-1"></i>
+                                                    Tạo: <span th:text="${#temporals.format(playlist.createdAt, 'dd/MM/yyyy')}">01/01/2024</span>
+                                                </small>
+                                                <small class="text-muted">
+                                                    <i class="fas fa-edit me-1"></i>
+                                                    Cập nhật: <span th:text="${#temporals.format(playlist.updatedAt, 'dd/MM/yyyy')}">01/01/2024</span>
+                                                </small>
+                                                <small class="text-muted">
+                                                    <i class="fas fa-music me-1"></i>
+                                                    <span id="videoCount">0</span> video
+                                                </small>
+                                            </div>
+                                            <div class="playlist-actions d-flex gap-2">
+                                                <button class="btn btn-primary" onclick="playAll()" id="playAllBtn">
+                                                    <i class="fas fa-play me-2"></i>Phát tất cả
+                                                </button>
+                                                <button class="btn btn-outline-primary" onclick="shufflePlay()">
+                                                    <i class="fas fa-random me-2"></i>Phát ngẫu nhiên
+                                                </button>
+                                                <div class="dropdown" sec:authorize="isAuthenticated()">
+                                                    <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                                        <i class="fas fa-ellipsis-v"></i>
+                                                    </button>
+                                                    <ul class="dropdown-menu">
+                                                        <li><a class="dropdown-item" href="#" onclick="editPlaylist()">
+                                                            <i class="fas fa-edit me-2"></i>Chỉnh sửa
+                                                        </a></li>
+                                                        <li><a class="dropdown-item" href="#" onclick="sharePlaylist()">
+                                                            <i class="fas fa-share me-2"></i>Chia sẻ
+                                                        </a></li>
+                                                        <li><hr class="dropdown-divider"></li>
+                                                        <li><a class="dropdown-item text-danger" href="#" onclick="deletePlaylist()">
+                                                            <i class="fas fa-trash me-2"></i>Xóa playlist
+                                                        </a></li>
+                                                    </ul>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Playlist Videos -->
+                <div class="row">
+                    <div class="col-12">
+                        <div class="playlist-videos card border-0 shadow-sm">
+                            <div class="card-header bg-transparent border-0 d-flex justify-content-between align-items-center">
+                                <h5 class="mb-0">
+                                    <i class="fas fa-music me-2"></i>
+                                    Danh sách video
+                                </h5>
+                                <div class="view-options">
+                                    <button class="btn btn-sm btn-outline-secondary" onclick="toggleSortOrder()" id="sortBtn">
+                                        <i class="fas fa-sort-amount-down me-1"></i>Sắp xếp
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="card-body p-0">
+                                <!-- Loading State -->
+                                <div id="videosLoading" class="text-center py-5">
+                                    <div class="spinner-border text-primary" role="status">
+                                        <span class="visually-hidden">Đang tải video...</span>
+                                    </div>
+                                    <p class="mt-3 text-muted">Đang tải danh sách video...</p>
+                                </div>
+
+                                <!-- Empty State -->
+                                <div id="videosEmpty" class="text-center py-5" style="display: none;">
+                                    <i class="fas fa-music-slash fa-4x text-muted mb-3"></i>
+                                    <h5 class="text-muted mb-3">Playlist trống</h5>
+                                    <p class="text-muted mb-4">Chưa có video nào trong playlist này</p>
+                                    <a href="/search" class="btn btn-primary">
+                                        <i class="fas fa-search me-2"></i>Tìm video để thêm
+                                    </a>
+                                </div>
+
+                                <!-- Videos List -->
+                                <div id="videosList" class="playlist-videos-list" style="display: none;">
+                                    <!-- Videos will be loaded here -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div th:fragment="scripts">
+            <script th:inline="javascript">
+                const playlistId = /*[[${playlist.id}]]*/ 0;
+                const isOwner = /*[[${isOwner}]]*/ false;
+                let videos = [];
+                let sortOrder = 'asc';
+
+                document.addEventListener('DOMContentLoaded', function() {
+                    loadPlaylistVideos();
+                });
+
+                async function loadPlaylistVideos() {
+                    try {
+                        document.getElementById('videosLoading').style.display = 'block';
+                        document.getElementById('videosList').style.display = 'none';
+                        document.getElementById('videosEmpty').style.display = 'none';
+
+                        const response = await fetch(`/api/playlist/${playlistId}/videos`);
+                        const data = await response.json();
+
+                        document.getElementById('videosLoading').style.display = 'none';
+
+                        if (data.videos && data.videos.length > 0) {
+                            videos = data.videos;
+                            displayVideos(videos);
+                            updateVideoCount(videos.length);
+                            document.getElementById('playAllBtn').disabled = false;
+                        } else {
+                            document.getElementById('videosEmpty').style.display = 'block';
+                            updateVideoCount(0);
+                            document.getElementById('playAllBtn').disabled = true;
+                        }
+
+                    } catch (error) {
+                        console.error('Error loading playlist videos:', error);
+                        document.getElementById('videosLoading').style.display = 'none';
+                        showToast('Không thể tải danh sách video', 'error');
+                    }
+                }
+
+                function displayVideos(videoList) {
+                    const container = document.getElementById('videosList');
+                    container.innerHTML = '';
+
+                    videoList.forEach((video, index) => {
+                        const videoItem = createVideoItem(video, index + 1);
+                        container.appendChild(videoItem);
+                    });
+
+                    container.style.display = 'block';
+                }
+
+                function createVideoItem(video, position) {
+                    const div = document.createElement('div');
+                    div.className = 'playlist-video-item border-bottom';
+                    div.dataset.videoId = video.videoId;
+                    div.dataset.position = video.position;
+
+                    const addedDate = new Date(video.addedAt).toLocaleDateString('vi-VN');
+
+                    div.innerHTML = `
+                        <div class="d-flex align-items-center p-3">
+                            <div class="video-position me-3">
+                                <span class="text-muted">${position}</span>
+                            </div>
+                            <div class="video-thumbnail me-3">
+                                <div class="position-relative">
+                                    <img src="${video.videoThumbnail}" class="playlist-video-thumb rounded" alt="${video.videoTitle}">
+                                    <div class="play-overlay-small">
+                                        <i class="fas fa-play text-white"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="video-info flex-grow-1">
+                                <h6 class="video-title mb-1">
+                                    <a href="/watch/${video.videoId}" class="text-decoration-none text-dark">
+                                        ${video.videoTitle}
+                                    </a>
+                                </h6>
+                                <p class="text-muted small mb-1">
+                                    <i class="fas fa-user me-1"></i>${video.channelName}
+                                </p>
+                                <p class="text-muted small mb-0">
+                                    <i class="fas fa-calendar me-1"></i>Thêm vào: ${addedDate}
+                                </p>
+                            </div>
+                            <div class="video-actions">
+                                <div class="btn-group" role="group">
+                                    <a href="/watch/${video.videoId}" class="btn btn-primary btn-sm">
+                                        <i class="fas fa-play"></i>
+                                    </a>
+                                    ${isOwner ? `
+                                        <button class="btn btn-outline-secondary btn-sm" onclick="moveVideo(${video.position}, 'up')" ${position === 1 ? 'disabled' : ''}>
+                                            <i class="fas fa-arrow-up"></i>
+                                        </button>
+                                        <button class="btn btn-outline-secondary btn-sm" onclick="moveVideo(${video.position}, 'down')" ${position === videos.length ? 'disabled' : ''}>
+                                            <i class="fas fa-arrow-down"></i>
+                                        </button>
+                                        <button class="btn btn-outline-danger btn-sm" onclick="removeVideo('${video.videoId}')">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    ` : ''}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+
+                    return div;
+                }
+
+                function updateVideoCount(count) {
+                    document.getElementById('videoCount').textContent = count;
+                }
+
+                function playAll() {
+                    if (videos.length > 0) {
+                        window.location.href = `/watch/${videos[0].videoId}?playlist=${playlistId}`;
+                    }
+                }
+
+                function shufflePlay() {
+                    if (videos.length > 0) {
+                        const randomIndex = Math.floor(Math.random() * videos.length);
+                        window.location.href = `/watch/${videos[randomIndex].videoId}?playlist=${playlistId}&shuffle=true`;
+                    }
+                }
+
+                function toggleSortOrder() {
+                    sortOrder = sortOrder === 'asc' ? 'desc' : 'asc';
+                    const sortedVideos = [...videos].sort((a, b) => {
+                        return sortOrder === 'asc' ? a.position - b.position : b.position - a.position;
+                    });
+                    displayVideos(sortedVideos);
+                    
+                    const sortBtn = document.getElementById('sortBtn');
+                    sortBtn.innerHTML = `<i class="fas fa-sort-amount-${sortOrder === 'asc' ? 'down' : 'up'} me-1"></i>Sắp xếp`;
+                }
+
+                async function removeVideo(videoId) {
+                    if (!confirm('Bạn có chắc muốn xóa video này khỏi playlist?')) return;
+
+                    try {
+                        const response = await fetch(`/api/playlist/${playlistId}/remove/${videoId}`, {
+                            method: 'POST'
+                        });
+
+                        const data = await response.json();
+
+                        if (data.success) {
+                            showToast('Đã xóa video khỏi playlist', 'success');
+                            loadPlaylistVideos();
+                        } else {
+                            showToast(data.error || 'Có lỗi xảy ra', 'error');
+                        }
+
+                    } catch (error) {
+                        console.error('Error removing video:', error);
+                        showToast('Có lỗi xảy ra khi xóa video', 'error');
+                    }
+                }
+
+                async function moveVideo(position, direction) {
+                    const newPosition = direction === 'up' ? position - 1 : position + 1;
+                    
+                    try {
+                        const response = await fetch(`/api/playlist/${playlistId}/reorder`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                videoId: videos.find(v => v.position === position).videoId,
+                                newPosition: newPosition
+                            })
+                        });
+
+                        const data = await response.json();
+
+                        if (data.success) {
+                            loadPlaylistVideos();
+                        } else {
+                            showToast(data.error || 'Có lỗi xảy ra', 'error');
+                        }
+
+                    } catch (error) {
+                        console.error('Error moving video:', error);
+                        showToast('Có lỗi xảy ra khi di chuyển video', 'error');
+                    }
+                }
+
+                function editPlaylist() {
+                    // Redirect to edit page or show modal
+                    window.location.href = `/playlist/${playlistId}/edit`;
+                }
+
+                function sharePlaylist() {
+                    const url = window.location.href;
+                    if (navigator.share) {
+                        navigator.share({
+                            title: document.title,
+                            url: url
+                        });
+                    } else {
+                        navigator.clipboard.writeText(url).then(() => {
+                            showToast('Đã sao chép link playlist!', 'success');
+                        });
+                    }
+                }
+
+                async function deletePlaylist() {
+                    if (!confirm('Bạn có chắc muốn xóa playlist này? Hành động này không thể hoàn tác.')) return;
+
+                    try {
+                        const response = await fetch(`/api/playlist/${playlistId}`, {
+                            method: 'DELETE'
+                        });
+
+                        const data = await response.json();
+
+                        if (data.success) {
+                            showToast('Đã xóa playlist', 'success');
+                            window.location.href = '/playlists';
+                        } else {
+                            showToast(data.error || 'Có lỗi xảy ra', 'error');
+                        }
+
+                    } catch (error) {
+                        console.error('Error deleting playlist:', error);
+                        showToast('Có lỗi xảy ra khi xóa playlist', 'error');
+                    }
+                }
+            </script>
+        </div>
+    </div>
+</body>
+</html>

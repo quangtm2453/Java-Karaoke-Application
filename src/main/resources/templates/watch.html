@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title th:text="${video != null ? video.title + ' - YouTube Karaoke' : 'Xem video - YouTube Karaoke'}">Xem video - YouTube Karaoke</title>
+</head>
+<body>
+    <div th:replace="base :: layout(content=~{::content}, scripts=~{::scripts}, title=${video != null ? video.title : 'Xem video'})">
+        <div th:fragment="content">
+            <div class="container-fluid py-4">
+                <div class="row">
+                    <!-- Video Player Column -->
+                    <div class="col-lg-8">
+                        <div class="video-player-container">
+                            <!-- Video Player -->
+                            <div class="video-player card border-0 shadow-sm mb-4">
+                                <div class="ratio ratio-16x9">
+                                    <iframe th:src="'https://www.youtube.com/embed/' + ${video.id} + '?autoplay=1&rel=0'" 
+                                            allowfullscreen 
+                                            allow="autoplay; encrypted-media">
+                                    </iframe>
+                                </div>
+                            </div>
+
+                            <!-- Video Info -->
+                            <div class="video-info card border-0 shadow-sm mb-4">
+                                <div class="card-body">
+                                    <h1 class="video-title h4 mb-3" th:text="${video.title}">Video Title</h1>
+                                    
+                                    <div class="video-meta d-flex flex-wrap align-items-center justify-content-between mb-3">
+                                        <div class="channel-info d-flex align-items-center">
+                                            <i class="fas fa-user-circle fa-2x text-muted me-3"></i>
+                                            <div>
+                                                <h6 class="mb-0" th:text="${video.channel}">Channel Name</h6>
+                                                <small class="text-muted">
+                                                    <i class="fas fa-eye me-1"></i>
+                                                    <span th:text="${#numbers.formatInteger(video.viewCount != null ? #numbers.formatInteger(video.viewCount) : 0, 0, 'COMMA')}">0</span> lượt xem
+                                                </small>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="video-actions d-flex gap-2">
+                                            <button class="btn btn-outline-primary btn-sm" onclick="likeVideo()">
+                                                <i class="fas fa-thumbs-up me-1"></i>
+                                                <span th:text="${video.likeCount != null ? #numbers.formatInteger(#numbers.formatInteger(video.likeCount), 0, 'COMMA') : '0'}">0</span>
+                                            </button>
+                                            <button class="btn btn-outline-secondary btn-sm" onclick="shareVideo()">
+                                                <i class="fas fa-share me-1"></i>Chia sẻ
+                                            </button>
+                                            <div class="dropdown">
+                                                <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                                    <i class="fas fa-plus me-1"></i>Thêm vào
+                                                </button>
+                                                <ul class="dropdown-menu">
+                                                    <li><a class="dropdown-item" href="#" onclick="addToPlaylist()">
+                                                        <i class="fas fa-list me-2"></i>Playlist
+                                                    </a></li>
+                                                    <li><a class="dropdown-item" href="#" onclick="addToFavorites()">
+                                                        <i class="fas fa-heart me-2"></i>Yêu thích
+                                                    </a></li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Video Description -->
+                                    <div class="video-description">
+                                        <div class="description-toggle">
+                                            <button class="btn btn-link p-0 text-decoration-none" type="button" data-bs-toggle="collapse" data-bs-target="#videoDescription">
+                                                <i class="fas fa-chevron-down me-1"></i>Xem mô tả
+                                            </button>
+                                        </div>
+                                        <div class="collapse" id="videoDescription">
+                                            <div class="mt-3 p-3 bg-light rounded">
+                                                <p class="mb-0" th:text="${video.description}" style="white-space: pre-line;">Video description...</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Comments Section (Placeholder) -->
+                            <div class="comments-section card border-0 shadow-sm">
+                                <div class="card-body">
+                                    <h5 class="mb-4">
+                                        <i class="fas fa-comments me-2"></i>
+                                        Bình luận
+                                        <span class="badge bg-secondary ms-2" th:text="${video.commentCount != null ? #numbers.formatInteger(#numbers.formatInteger(video.commentCount), 0, 'COMMA') : '0'}">0</span>
+                                    </h5>
+                                    
+                                    <div class="alert alert-info">
+                                        <i class="fas fa-info-circle me-2"></i>
+                                        Tính năng bình luận sẽ được triển khai trong phiên bản tiếp theo.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sidebar -->
+                    <div class="col-lg-4">
+                        <div class="sidebar">
+                            <!-- Related Videos -->
+                            <div class="related-videos card border-0 shadow-sm">
+                                <div class="card-header bg-transparent border-0">
+                                    <h5 class="mb-0">
+                                        <i class="fas fa-list me-2"></i>
+                                        Video liên quan
+                                    </h5>
+                                </div>
+                                <div class="card-body p-0">
+                                    <div id="relatedVideosContainer">
+                                        <!-- Loading spinner -->
+                                        <div class="text-center py-4">
+                                            <div class="spinner-border spinner-border-sm text-primary" role="status">
+                                                <span class="visually-hidden">Đang tải...</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div th:fragment="scripts">
+            <script th:inline="javascript">
+                const currentVideo = {
+                    id: /*[[${video.id}]]*/ '',
+                    title: /*[[${video.title}]]*/ '',
+                    channel: /*[[${video.channel}]]*/ '',
+                    thumbnail: /*[[${video.thumbnail}]]*/ ''
+                };
+
+                document.addEventListener('DOMContentLoaded', function() {
+                    loadRelatedVideos();
+                });
+
+                function loadRelatedVideos() {
+                    const query = currentVideo.title.split(' ').slice(0, 3).join(' ') + ' karaoke';
+                    
+                    fetch(`/api/search?q=${encodeURIComponent(query)}&maxResults=10`)
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.videos && data.videos.length > 0) {
+                                // Filter out current video
+                                const relatedVideos = data.videos.filter(video => video.id !== currentVideo.id);
+                                displayRelatedVideos(relatedVideos.slice(0, 8));
+                            } else {
+                                showNoRelatedVideos();
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error loading related videos:', error);
+                            showNoRelatedVideos();
+                        });
+                }
+
+                function displayRelatedVideos(videos) {
+                    const container = document.getElementById('relatedVideosContainer');
+                    container.innerHTML = '';
+                    
+                    videos.forEach(video => {
+                        const videoItem = createRelatedVideoItem(video);
+                        container.appendChild(videoItem);
+                    });
+                }
+
+                function createRelatedVideoItem(video) {
+                    const item = document.createElement('div');
+                    item.className = 'related-video-item p-3 border-bottom';
+                    
+                    item.innerHTML = `
+                        <div class="row g-3">
+                            <div class="col-5">
+                                <div class="position-relative">
+                                    <img src="${video.thumbnail}" class="img-fluid rounded related-thumbnail" alt="${video.title}">
+                                    <div class="play-overlay-small">
+                                        <i class="fas fa-play text-white"></i>
+                                    </div>
+                                    <div class="video-duration-small">
+                                        ${formatDuration(video.duration)}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-7">
+                                <h6 class="related-video-title mb-2">
+                                    <a href="/watch/${video.id}" class="text-decoration-none text-dark">
+                                        ${video.title}
+                                    </a>
+                                </h6>
+                                <p class="text-muted small mb-1">${video.channel}</p>
+                                <p class="text-muted small mb-0">
+                                    ${formatViewCount(video.viewCount)} lượt xem
+                                </p>
+                            </div>
+                        </div>
+                    `;
+                    
+                    return item;
+                }
+
+                function showNoRelatedVideos() {
+                    const container = document.getElementById('relatedVideosContainer');
+                    container.innerHTML = `
+                        <div class="text-center py-4 text-muted">
+                            <i class="fas fa-video-slash fa-2x mb-2"></i>
+                            <p class="mb-0">Không có video liên quan</p>
+                        </div>
+                    `;
+                }
+
+                function formatDuration(duration) {
+                    if (!duration) return '';
+                    
+                    const match = duration.match(/PT(\d+H)?(\d+M)?(\d+S)?/);
+                    if (!match) return '';
+                    
+                    const hours = match[1] ? parseInt(match[1]) : 0;
+                    const minutes = match[2] ? parseInt(match[2]) : 0;
+                    const seconds = match[3] ? parseInt(match[3]) : 0;
+                    
+                    if (hours > 0) {
+                        return `${hours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                    } else {
+                        return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+                    }
+                }
+
+                function formatViewCount(count) {
+                    if (!count) return '0';
+                    const num = parseInt(count);
+                    if (num >= 1000000) {
+                        return (num / 1000000).toFixed(1) + 'M';
+                    } else if (num >= 1000) {
+                        return (num / 1000).toFixed(1) + 'K';
+                    }
+                    return num.toLocaleString();
+                }
+
+                function likeVideo() {
+                    alert('Tính năng like sẽ được triển khai sau!');
+                }
+
+                function shareVideo() {
+                    const url = window.location.href;
+                    if (navigator.share) {
+                        navigator.share({
+                            title: currentVideo.title,
+                            url: url
+                        });
+                    } else {
+                        navigator.clipboard.writeText(url).then(() => {
+                            alert('Đã sao chép link video!');
+                        });
+                    }
+                }
+
+                function addToPlaylist() {
+                    alert('Tính năng thêm vào playlist sẽ được triển khai sau!');
+                }
+
+                function addToFavorites() {
+                    alert('Tính năng yêu thích sẽ được triển khai sau!');
+                }
+            </script>
+        </div>
+    </div>
+</body>
+</html>
